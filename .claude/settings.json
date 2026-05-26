@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Program Files\\\\nodejs\\\\\" -ErrorAction SilentlyContinue; Get-ChildItem \"$env:APPDATA\\\\npm\" -ErrorAction SilentlyContinue; Get-ChildItem \"C:\\\\Program Files\\\\nvm\" -ErrorAction SilentlyContinue)",
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"http://localhost:3001/api/auth/login\" -Method POST -ContentType \"application/json\" -Body '{\"email\":\"x\",\"password\":\"x\"}' -ErrorAction Stop; $r.StatusCode } catch { $_.Exception.Response.StatusCode.value__ })",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/api/auth/login -X POST -H \"Content-Type: application/json\" -d '{\"email\":\"x\",\"password\":\"x\"}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
+      "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H 'Content-Type: application/json' -d '{\"email\":\"test2@example.com\",\"password\":\"testpass123\"}')",
+      "Bash(python3 -m json.tool)"
+    ]
+  }
+}
