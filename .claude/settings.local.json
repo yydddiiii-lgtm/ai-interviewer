@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:ophyai.com)",
+      "WebFetch(domain:www.finalroundai.com)",
+      "WebFetch(domain:bestjobsearchapps.com)",
+      "WebFetch(domain:www.lodely.com)",
+      "WebFetch(domain:jobright.ai)",
+      "WebFetch(domain:natlawreview.com)",
+      "WebFetch(domain:www.gankinterview.cn)",
+      "WebFetch(domain:www.offerin.cn)"
+    ]
+  }
+}
