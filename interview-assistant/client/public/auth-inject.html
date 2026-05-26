@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body>
+<script>
+  const target = new URLSearchParams(location.search).get('to') || '/';
+  localStorage.setItem('mock_token', 'mock-jwt-token-abc123');
+  localStorage.setItem('mock_user', JSON.stringify({
+    id: 'user-001',
+    email: 'demo@example.com',
+    created_at: '2024-01-15T08:00:00Z'
+  }));
+  location.replace(target);
+</script>
+</body>
+</html>

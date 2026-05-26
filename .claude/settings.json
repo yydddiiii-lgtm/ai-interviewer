@@ -7,7 +7,12 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/api/auth/login -X POST -H \"Content-Type: application/json\" -d '{\"email\":\"x\",\"password\":\"x\"}')",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173)",
       "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H 'Content-Type: application/json' -d '{\"email\":\"test2@example.com\",\"password\":\"testpass123\"}')",
-      "Bash(python3 -m json.tool)"
+      "Bash(python3 -m json.tool)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;$env:PATH\"; cd \"e:\\\\AI Coding\\\\1\\\\interview-assistant\\\\client\"; npm run dev 2>&1)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;$env:PATH\"; cd \"e:\\\\AI Coding\\\\1\"; node screenshot.js 2>&1)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;$env:PATH\"; cd \"e:\\\\AI Coding\\\\1\"; npm install --save-dev playwright 2>&1 | Select-Object -Last 3)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;$env:PATH\"; cd \"e:\\\\AI Coding\\\\1\"; npx playwright install chromium 2>&1 | Select-Object -Last 5)",
+      "PowerShell($env:PATH = \"C:\\\\Program Files\\\\nodejs;$env:PATH\"; cd \"e:\\\\AI Coding\\\\1\"; npx playwright install chromium 2>&1 | Select-Object -Last 3)"
     ]
   }
 }

@@ -20,9 +20,13 @@ function ReviewItem({ item, index }) {
           {index + 1}
         </span>
         <span className="flex-1 text-sm font-medium text-slate-700 line-clamp-1">{question.content}</span>
-        <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${scoreColor(answer.score)}`}>
-          {answer.score}/10
-        </span>
+        {answer ? (
+          <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${scoreColor(answer.score)}`}>
+            {answer.score}/10
+          </span>
+        ) : (
+          <span className="text-sm text-slate-400 px-2.5 py-1">未作答</span>
+        )}
         <svg
           className={`w-4 h-4 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none" viewBox="0 0 24 24"
@@ -33,24 +37,30 @@ function ReviewItem({ item, index }) {
 
       {open && (
         <div className="px-5 pb-4 bg-slate-50 border-t border-slate-100 space-y-3">
-          <div>
-            <p className="text-xs font-semibold text-slate-500 mb-1">你的回答</p>
-            <p className="text-sm text-slate-700">{answer.content}</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="bg-white rounded-lg p-3 border border-slate-200">
-              <p className="text-xs font-semibold text-slate-400 mb-1">内容点评</p>
-              <p className="text-xs text-slate-600">{answer.feedback_content}</p>
-            </div>
-            <div className="bg-white rounded-lg p-3 border border-slate-200">
-              <p className="text-xs font-semibold text-slate-400 mb-1">结构点评</p>
-              <p className="text-xs text-slate-600">{answer.feedback_structure}</p>
-            </div>
-            <div className="bg-white rounded-lg p-3 border border-slate-200">
-              <p className="text-xs font-semibold text-slate-400 mb-1">改进建议</p>
-              <p className="text-xs text-slate-600">{answer.feedback_improvement}</p>
-            </div>
-          </div>
+          {answer ? (
+            <>
+              <div>
+                <p className="text-xs font-semibold text-slate-500 mb-1">你的回答</p>
+                <p className="text-sm text-slate-700">{answer.content}</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="bg-white rounded-lg p-3 border border-slate-200">
+                  <p className="text-xs font-semibold text-slate-400 mb-1">内容点评</p>
+                  <p className="text-xs text-slate-600">{answer.feedback_content}</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-slate-200">
+                  <p className="text-xs font-semibold text-slate-400 mb-1">结构点评</p>
+                  <p className="text-xs text-slate-600">{answer.feedback_structure}</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 border border-slate-200">
+                  <p className="text-xs font-semibold text-slate-400 mb-1">改进建议</p>
+                  <p className="text-xs text-slate-600">{answer.feedback_improvement}</p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-slate-400">该题未作答</p>
+          )}
         </div>
       )}
     </div>

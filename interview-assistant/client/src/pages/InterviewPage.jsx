@@ -19,6 +19,7 @@ export default function InterviewPage() {
   const [loadingQuestion, setLoadingQuestion] = useState(true)
   const [loadingFeedback, setLoadingFeedback] = useState(false)
   const [finishing, setFinishing] = useState(false)
+  const [finishError, setFinishError] = useState(null)
 
   useEffect(() => {
     loadQuestion(0)
@@ -58,12 +59,14 @@ export default function InterviewPage() {
 
   const handleFinish = async () => {
     setFinishing(true)
+    setFinishError(null)
     try {
       await completeSession(id)
       await generateReport(id)
       navigate(`/interview/${id}/report`)
-    } catch {
+    } catch (err) {
       setFinishing(false)
+      setFinishError(err?.response?.data?.error || err?.message || '生成报告失败，请重试')
     }
   }
 
@@ -73,7 +76,7 @@ export default function InterviewPage() {
     <div className="min-h-[calc(100vh-64px)] bg-slate-50 py-8 px-6">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-2">
           <div className="flex-1">
             <ProgressBar current={currentIndex + 1} total={TOTAL_QUESTIONS} />
           </div>
@@ -82,9 +85,14 @@ export default function InterviewPage() {
             disabled={finishing}
             className="text-sm text-slate-500 hover:text-slate-700 border border-slate-200 hover:border-slate-300 px-4 py-2 rounded-xl transition-colors flex-shrink-0"
           >
-            结束面试
+            {finishing ? '生成中...' : '结束面试'}
           </button>
         </div>
+        {finishError && (
+          <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            {finishError}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Main area */}

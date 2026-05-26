@@ -11,12 +11,18 @@ export default function ReportPage() {
   const [report, setReport] = useState(null)
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    getReport(id).then(data => {
-      setReport(data.report)
-      setItems(data.items)
-    }).finally(() => setLoading(false))
+    getReport(id)
+      .then(data => {
+        setReport(data.report)
+        setItems(data.items)
+      })
+      .catch(err => {
+        setError(err?.response?.data?.error || err?.message || '加载报告失败')
+      })
+      .finally(() => setLoading(false))
   }, [id])
 
   if (loading) {
@@ -28,6 +34,18 @@ export default function ReportPage() {
             <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
           </svg>
           <p className="text-slate-500 text-sm">正在生成面试报告...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] bg-slate-50 flex items-center justify-center">
+        <div className="text-center max-w-sm">
+          <p className="text-red-600 font-medium mb-2">报告加载失败</p>
+          <p className="text-slate-500 text-sm mb-4">{error}</p>
+          <Link to="/history" className="text-blue-600 text-sm hover:underline">← 返回历史记录</Link>
         </div>
       </div>
     )
