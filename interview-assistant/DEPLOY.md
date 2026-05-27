@@ -3,43 +3,115 @@
 ## 前置条件
 
 - 阿里云 ECS，系统：Ubuntu 22.04
-- 本机已安装 Git，代码已推送到远程仓库（GitHub / Gitee 等）
+- 本机已安装 Git
+
+---
+
+## 第零步：SSH 登录服务器
+
+### 找到公网 IP
+阿里云控制台 → ECS → 实例列表 → 复制**公网 IP 地址**（格式如 `47.xxx.xxx.xxx`）
+
+### 登录（Windows PowerShell）
+```powershell
+ssh root@你的公网IP
+```
+第一次连接会问 `Are you sure you want to continue connecting?` → 输入 `yes`，然后输入密码。
+
+### 忘记密码？
+阿里云控制台 → ECS → 实例 → 更多 → 密码/密钥 → **重置实例密码** → 重启实例后生效。
+
+### SSH 连不上？
+检查安全组是否开放了 22 端口（入方向 / TCP / 22 / 0.0.0.0/0）。
 
 ---
 
 ## 第一步：服务器安装 Docker
 
-SSH 登录服务器后，依次执行：
+> 阿里云 ECS 在国内，无法直接访问 Docker 官方源，需要用阿里云镜像源安装。
 
 ```bash
-# 更新系统包
+# 1. 更新系统包（中途可能弹出"哪些服务需要重启"的交互界面，直接回车确认即可）
 sudo apt-get update && sudo apt-get upgrade -y
 
-# 安装 Docker（官方一键脚本）
-curl -fsSL https://get.docker.com | sudo sh
+# 2. 添加阿里云 Docker 安装源的信任密钥
+curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
-# 将当前用户加入 docker 组（免 sudo 运行 docker）
-sudo usermod -aG docker $USER
+# 3. 把阿里云 Docker 源地址写入系统软件列表
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# 重新加载组权限（或重新登录 SSH）
-newgrp docker
+# 4. 刷新软件列表
+sudo apt-get update
 
-# 验证安装
-docker --version
-docker compose version
+# 5. 安装 Docker
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 ```
+
+### 配置镜像加速器
+Docker 拉取镜像（软件包）默认走 Docker Hub（美国），国内访问会超时，需配置国内加速器：
+
+```bash
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<EOF
+{
+  "registry-mirrors": [
+    "https://docker.m.daocloud.io",
+    "https://dockerproxy.com",
+    "https://mirror.baidubce.com"
+  ]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+```
+
+### 将当前用户加入 docker 组（免 sudo）
+```bash
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### 验证安装
+```bash
+docker run hello-world
+```
+看到 `Hello from Docker!` 即成功。
 
 ---
 
-## 第二步：克隆代码到服务器
+## 第二步：上传代码到服务器
+
+### 方法一：从 GitHub clone（推荐）
 
 ```bash
-# 进入你希望存放项目的目录
-cd /home/ubuntu
+cd /home
+git clone https://github.com/yydddiiii-lgtm/ai-interviewer.git
+cd ai-interviewer/interview-assistant
+```
 
-# 克隆仓库（替换为你的实际仓库地址）
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO/interview-assistant
+后续代码有更新时，进入项目目录执行：
+```bash
+git pull origin master
+```
+
+> 如果 git pull 超时或报 TLS 错误，通常是网络抖动，多试几次即可。
+
+---
+
+### 方法二：从本机用 scp 上传（GitHub 完全不可用时的备用方案）
+
+在**本机 PowerShell**（新开一个窗口，不是服务器终端）执行：
+
+```powershell
+scp -r "e:\AI Coding\1\interview-assistant" root@你的公网IP:/home/
+```
+
+输入服务器 root 密码，等待上传完成（文件较多时会比较慢）。
+
+上传完成后回到**服务器终端**，进入项目目录：
+
+```bash
+cd /home/interview-assistant
 ```
 
 ---
@@ -47,35 +119,36 @@ cd YOUR_REPO/interview-assistant
 ## 第三步：填写 .env 文件
 
 ```bash
-# 以 .env.example 为模板创建 .env
 cp .env.example .env
-
-# 编辑 .env，填入真实值
 nano .env
 ```
+
+> nano 是终端文本编辑器：方向键移动光标，Backspace 删除，编辑完按 `Ctrl+X` → `Y` → `Enter` 保存退出。
 
 需要填写的关键字段：
 
 | 字段 | 说明 |
 |------|------|
-| `POSTGRES_PASSWORD` | 数据库密码，随机强密码 |
-| `JWT_SECRET` | JWT 签名密钥，至少 32 位随机字符串 |
-| `CLIENT_URL` | 服务器公网 IP，格式 `http://1.2.3.4` |
-| `ANTHROPIC_API_KEY` | Claude API 密钥 |
+| `POSTGRES_PASSWORD` | Docker 内部数据库密码，自己设一个，如 `MyDb@2026` |
+| `JWT_SECRET` | JWT 签名密钥，用下方命令生成 |
+| `CLIENT_URL` | 服务器公网 IP，格式 `http://1.2.3.4:8080` |
+| `DEEPSEEK_API_KEY` | DeepSeek API 密钥 |
 
-生成随机密钥的命令：
+生成随机 JWT 密钥：
 ```bash
 openssl rand -hex 32
 ```
+
+### 关于端口
+如果服务器 80 端口已被占用，`docker-compose.yml` 里 client 服务的端口已改为 `8080:80`，访问地址为 `http://公网IP:8080`。
 
 ---
 
 ## 第四步：数据库迁移
 
-migration SQL 已通过 docker-compose 的 `volumes` 挂载到 PostgreSQL 的
-`/docker-entrypoint-initdb.d/` 目录——**容器首次启动时会自动执行**，无需手动操作。
+`001_init.sql` 已通过 docker-compose volumes 挂载到 PostgreSQL 的 `/docker-entrypoint-initdb.d/`，**容器首次启动时自动执行**，无需手动操作。
 
-如果后续有新的 migration 文件，执行：
+后续新增 migration 文件时：
 ```bash
 docker compose exec db psql -U postgres -d interview_db -f /docker-entrypoint-initdb.d/新文件.sql
 ```
@@ -85,19 +158,18 @@ docker compose exec db psql -U postgres -d interview_db -f /docker-entrypoint-in
 ## 第五步：启动服务
 
 ```bash
-# 在 interview-assistant/ 目录下执行
 docker compose up -d --build
+```
 
-# 查看启动日志
-docker compose logs -f
-
-# 查看各容器状态
+查看状态：
+```bash
 docker compose ps
+docker compose logs -f
 ```
 
-正常输出示例：
+正常输出：
 ```
-NAME                STATUS
+NAME                              STATUS
 interview-assistant-db-1      Up (healthy)
 interview-assistant-server-1  Up
 interview-assistant-client-1  Up
@@ -107,19 +179,16 @@ interview-assistant-client-1  Up
 
 ## 第六步：开放阿里云安全组端口
 
-在阿里云控制台操作：
+阿里云控制台 → ECS → 安全组 → 配置规则 → 添加入方向规则：
 
-1. 进入 **ECS 控制台 → 实例 → 安全组 → 配置规则**
-2. 点击 **添加安全组规则**，填写：
+| 协议 | 端口 | 源地址 | 说明 |
+|------|------|--------|------|
+| TCP | 8080 | 0.0.0.0/0 | 前端访问 |
+| TCP | 22 | 你的 IP | SSH |
 
-| 方向 | 协议 | 端口 | 源地址 | 说明 |
-|------|------|------|--------|------|
-| 入方向 | TCP | 80 | 0.0.0.0/0 | HTTP（前端）|
-| 入方向 | TCP | 22 | 你的 IP | SSH（仅自己访问）|
+> `db`（5432）和 `server`（3001）只在 Docker 内部通信，**不需要**开放安全组端口。
 
-> `server:3001` 端口只在 Docker 内部网络暴露，**无需**在安全组开放。
-
-3. 浏览器访问 `http://你的服务器公网IP`，即可看到前端页面。
+浏览器访问 `http://你的公网IP:8080` 即可。
 
 ---
 
@@ -132,13 +201,29 @@ docker compose down
 # 停止并删除数据卷（⚠️ 会清空数据库）
 docker compose down -v
 
-# 重新构建并启动（代码更新后使用）
+# 代码更新后重新构建启动
 docker compose up -d --build
 
-# 查看服务器日志
+# 查看日志
 docker compose logs server
 docker compose logs client
 
-# 进入数据库容器
+# 进入数据库
 docker compose exec db psql -U postgres -d interview_db
 ```
+
+---
+
+## 常见问题
+
+**curl: (35) OpenSSL SSL_connect: Connection reset by peer**
+→ Docker 官方源被墙，改用阿里云镜像源安装（见第一步）。
+
+**docker: Error response from daemon: i/o timeout**
+→ Docker Hub 被墙，需配置镜像加速器（见第一步）。
+
+**git pull 卡住或 TLS 错误**
+→ 网络抖动，多试几次通常能成。实在不行改用 scp 从本机直接上传（见第二步方法二）。
+
+**80 端口已被占用**
+→ `docker-compose.yml` 中 client 的 ports 改为 `"8080:80"`，安全组开放 8080 端口。
