@@ -21,42 +21,42 @@
 ### 首页
 产品介绍、功能亮点和使用流程引导。
 
-![首页](docs/screenshots/01-home.png)
+![首页](interview-assistant/docs/screenshots/01-home.png)
 
 ---
 
 ### 注册 / 登录
 标签页切换，支持邮箱注册和登录。
 
-![注册登录](docs/screenshots/02-auth.png)
+![注册登录](interview-assistant/docs/screenshots/02-auth.png)
 
 ---
 
 ### 新建面试
 填写目标岗位、公司（可选）和简历文本，AI 据此生成专属题目。
 
-![新建面试](docs/screenshots/03-setup.png)
+![新建面试](interview-assistant/docs/screenshots/03-setup.png)
 
 ---
 
 ### 面试进行中
 AI 面试官逐题提问，支持文字或语音作答，每题提交后右侧即时显示 AI 评分与点评。
 
-![面试进行中](docs/screenshots/04-interview.png)
+![面试进行中](interview-assistant/docs/screenshots/04-interview.png)
 
 ---
 
 ### 面试报告
 面试结束后生成完整报告：综合评分、突出优势、改进方向，以及每道题的折叠式详细回顾。
 
-![面试报告](docs/screenshots/05-report.png)
+![面试报告](interview-assistant/docs/screenshots/05-report.png)
 
 ---
 
 ### 历史记录
 查看所有历史面试会话，展示统计数据和每次面试的得分与状态。
 
-![历史记录](docs/screenshots/06-history.png)
+![历史记录](interview-assistant/docs/screenshots/06-history.png)
 
 ---
 
@@ -69,7 +69,7 @@ AI 面试官逐题提问，支持文字或语音作答，每题提交后右侧�
 ### 启动前端（当前阶段）
 
 ```bash
-cd client
+cd interview-assistant/client
 npm install
 npm run dev
 ```
