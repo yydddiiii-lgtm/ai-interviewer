@@ -157,8 +157,16 @@ docker compose exec db psql -U postgres -d interview_db -f /docker-entrypoint-in
 
 ## 第五步：启动服务
 
+首次启动前先单独构建前端（方便排查构建错误）：
+
 ```bash
-docker compose up -d --build
+docker compose build client --no-cache 2>&1 | tail -20
+```
+
+构建成功后启动所有服务：
+
+```bash
+docker compose up -d
 ```
 
 查看状态：
@@ -189,6 +197,70 @@ interview-assistant-client-1  Up
 > `db`（5432）和 `server`（3001）只在 Docker 内部通信，**不需要**开放安全组端口。
 
 浏览器访问 `http://你的公网IP:8080` 即可。
+
+---
+
+## 概念说明
+
+### "镜像"这个词出现了三次，含义完全不同
+
+| 词 | 含义 |
+|---|------|
+| Ubuntu 镜像源 | Ubuntu 软件商店的国内备份地址，用来安装 Docker 本身 |
+| Docker 镜像加速器 | Docker Hub（模板仓库）的国内备份地址，用来下载 Docker 镜像 |
+| Docker 镜像 | 容器的模板本身（如 `postgres:15`、`node:20-alpine`），不管从哪里下载内容都一样 |
+
+---
+
+### Docker 和端口的关系
+
+Docker 里的服务默认完全隔离，**只有在 `docker-compose.yml` 里写了 `ports:` 才会占用服务器的真实端口**。
+
+- `db`（PostgreSQL）— 用 `expose:`，只在 Docker 内部可见，不占用服务器端口
+- `server`（Node.js）— 用 `expose:`，只在 Docker 内部可见，不占用服务器端口
+- `client`（Nginx）— 用 `ports: "8080:80"`，占用服务器 8080 端口，外网才能访问
+
+只有 client 需要占用端口，因为它是用户用浏览器访问的入口，必须对外暴露。
+
+---
+
+### `8080:80` 是什么意思
+
+格式是 `服务器端口:容器内部端口`。
+
+- 左边 `8080` = 服务器对外暴露的端口，用户访问 `http://IP:8080`
+- 右边 `80` = 容器内 Nginx 监听的端口，固定不变
+
+Docker 负责把外部 8080 的流量转发到容器内的 80。
+
+**换端口只需改左边的数字**，右边的 80 不用动。
+
+---
+
+### Nginx 和 Docker 是两层"门卫"，职责不同
+
+```
+用户浏览器 → 服务器:8080 → Docker转发 → 容器:80(Nginx) → /api路径 → Node.js后端
+                                                            → 其他路径 → 前端页面
+```
+
+- **Docker**：负责把服务器端口和容器端口打通
+- **Nginx**：负责容器内部的请求分发（/api 转后端，其他返回前端）
+
+---
+
+### 换端口需要改哪些地方
+
+1. `docker-compose.yml` — 改 `ports: "新端口:80"`
+2. 阿里云安全组 — 开放新端口
+
+`.env` 文件里不需要配端口。
+
+---
+
+### Node.js 是什么
+
+在服务器/终端上运行 JavaScript 的环境。我们的后端（Express）用它运行，前端构建工具（Vite、npm）也需要它才能执行。`FROM node:20-alpine` 就是使用一个装好了 Node.js 20 的 Linux 环境来构建前端。
 
 ---
 
@@ -227,3 +299,9 @@ docker compose exec db psql -U postgres -d interview_db
 
 **80 端口已被占用**
 → `docker-compose.yml` 中 client 的 ports 改为 `"8080:80"`，安全组开放 8080 端口。
+
+**Cannot find native binding / @tailwindcss/oxide requires node >= 20**
+→ `client/Dockerfile` 第一行改为 `FROM node:20-alpine AS builder`，服务器上执行：
+```bash
+sed -i 's/node:18-alpine AS builder/node:20-alpine AS builder/' client/Dockerfile
+```

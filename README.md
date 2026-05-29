@@ -1,5 +1,7 @@
 # AI 面试教练
 
+**线上地址：http://123.56.244.199:8080**
+
 输入岗位和简历，AI 模拟真实面试官逐题提问，用户回答后获得即时评分与点评，面试结束后生成完整面试报告。
 
 ---
@@ -9,9 +11,9 @@
 | 层级 | 技术 |
 |------|------|
 | 前端 | React 18 + Vite 5 + Tailwind CSS v4 + React Router v6 |
-| 后端 | Node.js + Express + JWT（待开发）|
-| 数据库 | PostgreSQL + node-postgres（待开发）|
-| AI | Claude API（claude-sonnet-4-6）via @anthropic-ai/sdk（待开发）|
+| 后端 | Node.js + Express + JWT |
+| 数据库 | PostgreSQL 15 |
+| AI | DeepSeek API |
 | 语音 | Web Speech API（浏览器原生）|
 
 ---
@@ -60,37 +62,30 @@ AI 面试官逐题提问，支持文字或语音作答，每题提交后右侧�
 
 ---
 
-## 快速开始
+## 快速开始（本地开发）
 
 ### 环境要求
 
 - Node.js v20+
+- PostgreSQL 15+
 
-### 启动前端（当前阶段）
+### 启动
 
 ```bash
+# 后端
+cd interview-assistant/server
+npm install
+npm run dev
+
+# 前端
 cd interview-assistant/client
 npm install
 npm run dev
 ```
 
-浏览器访问 `http://localhost:5173`
-
-> 当前版本使用 mock 数据，无需启动后端和数据库。
-
 ### 环境变量
 
-参考 `.env.example` 创建 `.env` 文件（后端接入时需要）：
-
-```
-DATABASE_URL=postgresql://user:pass@localhost:5432/interview_db
-JWT_SECRET=your-secret-key
-ANTHROPIC_API_KEY=sk-ant-api03-...
-CLAUDE_MODEL=claude-sonnet-4-6
-PORT=3001
-CLIENT_URL=http://localhost:5173
-VITE_API_BASE_URL=http://localhost:3001/api
-```
+参考 `interview-assistant/.env.example` 创建 `.env` 文件。
 
 ---
 
@@ -106,7 +101,7 @@ interview-assistant/
 │   │   ├── api/             # API 封装（当前为 mock）
 │   │   └── mock/            # Mock 数据
 │   └── vite.config.js
-├── server/                  # Node.js 后端（待开发）
+├── server/                  # Node.js 后端
 └── docs/
     ├── PRD.md
     ├── TDD.md
@@ -116,11 +111,3 @@ interview-assistant/
 
 ---
 
-## 开发进度
-
-- [x] 产品需求文档（PRD）
-- [x] 技术方案文档（TDD）
-- [x] 前端 6 个页面（mock 数据）
-- [ ] Node.js 后端（Express + JWT + PostgreSQL）
-- [ ] 接入 Claude API
-- [ ] 前后端联调
